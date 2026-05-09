@@ -1,0 +1,20 @@
+#include <iostream>
+using namespace std;
+
+class SimpleInterest{
+public:
+    // Time & Rate have default values
+    float calculate(float p, int t = 1, float r = 8.5)
+    { return (p * r * t) / 100; }
+};
+
+int main(){
+    SimpleInterest obj;
+    float p;
+    cout << "Enter principal: ";
+    cin >> p;
+    cout << "Interest (Default Time & Rate): " << obj.calculate(p) << endl;
+    cout << "Interest (3 years, Default Rate): " << obj.calculate(p, 3) << endl;
+    cout << "Interest (3 years, 10.5% Rate): " << obj.calculate(p, 3, 10.5) << endl;
+    return 0;
+}
