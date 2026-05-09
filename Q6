@@ -1,0 +1,27 @@
+#include <iostream>
+using namespace std;
+
+class Value{
+    int val;
+public:
+    Value(){
+        val = 0;
+    }
+    // Parameterized constructor: Initialized at runtime based on user input
+    Value(int v){
+        val = v;
+    }
+    void display(){
+        cout << "Value: " << val << endl;
+    }
+};
+
+int main(){
+    int input;
+    cout << "Enter an integer: ";
+    cin >> input;
+    // Dynamic initialization happens here
+    Value obj(input); 
+    obj.display();
+    return 0;
+}
