@@ -1,0 +1,282 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+using namespace std;
+
+class Account {
+private:
+    int accountNumber;
+    string password;
+    string name;
+    double balance;
+
+public:
+    // Static variable to track total accounts created
+    static int totalAccounts;
+    Account() {}
+    Account(int accNo, string pass, string n, double bal) {
+        accountNumber = accNo;
+        password = pass;
+        name = n;
+        balance = bal;
+    }
+    // Getters
+    int getAccountNumber() { return accountNumber; }
+    string getPassword() { return password; }
+    string getName() { return name; }
+    double getBalance() { return balance; }
+    // Modifiers
+    void deposit(double amount) { balance += amount; }
+    bool withdraw(double amount) {
+        if (balance >= amount) {
+            balance -= amount;
+            return true;
+        }
+        return false;
+    }
+    // Convert object to CSV string format
+    string toCSV() {
+        stringstream ss;
+        // Account number is at the far left for efficient searching
+        ss << accountNumber << "," << password << "," << name << "," << balance;
+        return ss.str();
+    }
+};
+// Initialize static variable
+int Account::totalAccounts = 0;
+//Manager Layer
+class Bank {
+private:
+    const string FILENAME = "accounts.txt";
+    // Helper function to update the text file after transactions
+    void updateAccountInFile(Account updatedAccount) {
+        ifstream inFile(FILENAME);
+        ofstream tempFile("temp.txt");
+        string line;
+
+        while (getline(inFile, line)) {
+            stringstream ss(line);
+            string token;
+            getline(ss, token, ',');
+            int fileAccNo = stoi(token);
+
+            if (fileAccNo == updatedAccount.getAccountNumber()) {
+                // Write the updated account details
+                tempFile << updatedAccount.toCSV() << "\n";
+            } else {
+                // Keep the original line
+                tempFile << line << "\n";
+            }
+        }
+        inFile.close();
+        tempFile.close();
+        // Replace old file with updated file
+        remove(FILENAME.c_str());
+        rename("temp.txt", FILENAME.c_str());
+    }
+
+public:
+    Bank() {
+        // Count existing accounts to initialize the static variable on startup
+        ifstream file(FILENAME);
+        string line;
+        Account::totalAccounts = 0;
+        while (getline(file, line)) {
+            Account::totalAccounts++;
+        }
+        file.close();
+    }
+    void createAccount() {
+        string name, password;
+        double initialDeposit;
+
+        cout << "\nEnter Name: ";
+        cin.ignore();
+        getline(cin, name);
+        cout << "Set a Password: ";
+        cin >> password;
+        cout << "Initial Deposit Amount: ";
+        cin >> initialDeposit;
+        // Generate account number;Starts at 1001
+        int newAccNo = 1000 + Account::totalAccounts + 1;
+        Account newAccount(newAccNo, password, name, initialDeposit);
+        // Save to file
+        ofstream outFile(FILENAME, ios::app); // Append mode
+        outFile << newAccount.toCSV() << "\n";
+        outFile.close();
+        Account::totalAccounts++;
+        cout << "\n--- Account Created Successfully! ---" << endl;
+        cout << "Your Account Number is: " << newAccNo << endl;
+        cout << "Total Bank Accounts in System: " << Account::totalAccounts << endl;
+    }
+    bool login(Account &loggedInUser) {
+        int accNo;
+        string pass;
+        cout << "\nEnter Account Number: ";
+        cin >> accNo;
+        cout << "Enter Password: ";
+        cin >> pass;
+
+        ifstream file(FILENAME);
+        string line;
+        // Efficient search: Checking the most left value first
+        while (getline(file, line)) {
+            stringstream ss(line);
+            string accNoStr, passStr, nameStr, balStr;
+            getline(ss, accNoStr, ',');
+            getline(ss, passStr, ',');
+            getline(ss, nameStr, ',');
+            getline(ss, balStr, ',');
+            // If account number matches, verify password
+            if (stoi(accNoStr) == accNo) {
+                if (passStr == pass) {
+                    // Populate the loggedInUser object with file data
+                    loggedInUser = Account(accNo, passStr, nameStr, stod(balStr));
+                    file.close();
+                    return true; // Login successful
+                } else {
+                    cout << "\nError: Incorrect Password!" << endl;
+                    file.close();
+                    return false;
+                }
+            }
+        }
+        cout << "\nError: Account Number not found!" << endl;
+        file.close();
+        return false;
+    }
+    void accountMenu(Account &user) {
+        int choice;
+        double amount;
+        do {
+            cout << "\n===================================" << endl;
+            cout << " Welcome, " << user.getName() << endl;
+            cout << "===================================" << endl;
+            cout << "1. Check Balance" << endl;
+            cout << "2. Withdraw" << endl;
+            cout << "3. Deposit" << endl;
+            cout << "4. Transfer" << endl;
+            cout << "5. Logout" << endl;
+            cout << "-----------------------------------" << endl;
+            cout << "Enter choice: ";
+            cin >> choice;
+            switch (choice) {
+                case 1:
+                    cout << "Current Balance: $" << user.getBalance() << endl;
+                    break;
+                case 2:
+                    cout << "Enter withdrawal amount: $";
+                    cin >> amount;
+                    if (user.withdraw(amount)) {
+                        updateAccountInFile(user);
+                        cout << "Withdrawal successful! New Balance: $" << user.getBalance() << endl;
+                    } else {
+                        cout << "Error: Insufficient balance." << endl;
+                    }
+                    break;
+                case 3:
+                    cout << "Enter deposit amount: $";
+                    cin >> amount;
+                    user.deposit(amount);
+                    updateAccountInFile(user);
+                    cout << "Deposit successful! New Balance: $" << user.getBalance() << endl;
+                    break;
+                case 4: {
+                    int targetAccNo;
+                    cout << "Enter Target Account Number: ";
+                    cin >> targetAccNo;
+                    
+                    if (targetAccNo == user.getAccountNumber()) {
+                        cout << "Error: Cannot transfer to yourself!" << endl;
+                        break;
+                    }
+                    cout << "Enter amount to transfer: $";
+                    cin >> amount;
+
+                    if (amount > user.getBalance()) {
+                        cout << "Error: Insufficient balance for transfer." << endl;
+                        break;
+                    }
+                    // Look for target account
+                    ifstream inFile(FILENAME);
+                    string line;
+                    bool targetFound = false;
+                    Account targetAccount;
+
+                    while (getline(inFile, line)) {
+                        stringstream ss(line);
+                        string accNoStr, passStr, nameStr, balStr;
+                        getline(ss, accNoStr, ',');
+                        getline(ss, passStr, ',');
+                        getline(ss, nameStr, ',');
+                        getline(ss, balStr, ',');
+
+                        if (stoi(accNoStr) == targetAccNo) {
+                            targetFound = true;
+                            targetAccount = Account(stoi(accNoStr), passStr, nameStr, stod(balStr));
+                            break;
+                        }
+                    }
+                    inFile.close();
+                    if (targetFound) {
+                        // Process logic
+                        user.withdraw(amount);
+                        targetAccount.deposit(amount);
+                        // Update both files
+                        updateAccountInFile(user);
+                        updateAccountInFile(targetAccount);
+                        cout << "Transfer successful! You sent $" << amount << " to " << targetAccount.getName() << "." << endl;
+                    } else {
+                        cout << "Error: Target Account Number not found." << endl;
+                    }
+                    break;
+                }
+                case 5:
+                    cout << "Logging out..." << endl;
+                    break;
+                default:
+                    cout << "Invalid choice!" << endl;
+            }
+        } while (choice != 5);
+    }
+};
+
+int main() {
+    Bank myBank;
+    int mainChoice;
+    cout.setf(ios::fixed);
+    cout.precision(2);
+    do {
+        cout << "\n===================================" << endl;
+        cout << "      BANK MANAGEMENT SYSTEM" << endl;
+        cout << "===================================" << endl;
+        cout << "1. Create Account" << endl;
+        cout << "2. Login" << endl;
+        cout << "3. Exit System" << endl;
+        cout << "-----------------------------------" << endl;
+        cout << "Total Accounts in System: " << Account::totalAccounts << endl;
+        cout << "Enter choice: ";
+        cin >> mainChoice;
+
+        switch (mainChoice) {
+            case 1:
+                myBank.createAccount();
+                break;
+            case 2: {
+                Account currentUser;
+                if (myBank.login(currentUser)) {
+                    myBank.accountMenu(currentUser); // Pass control to the user menu
+                }
+                break;
+            }
+            case 3:
+                cout << "Shutting down the system. Goodbye!" << endl;
+                break;
+            default:
+                cout << "Invalid choice! Try again." << endl;
+        }
+
+    } while (mainChoice != 3);
+    return 0;
+}
