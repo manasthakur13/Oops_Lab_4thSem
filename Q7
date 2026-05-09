@@ -1,0 +1,51 @@
+#include <iostream>
+using namespace std;
+
+class Number{
+    int x;
+public:
+    Number(){
+        x = 0;
+    }
+    Number(int n){
+        x = n;
+    }
+    // Binary +
+    Number operator+(Number const &obj){
+        return Number(x + obj.x);
+    }
+    // Binary -
+    Number operator-(Number const &obj){
+        return Number(x - obj.x);
+    }
+    // Unary ++ (Prefix)
+    void operator++(){
+        ++x;
+    }
+    // Relational ==
+    bool operator==(Number const &obj){
+        return (x == obj.x);
+    }
+    // Stream Insertion <<
+    friend ostream &operator<<(ostream &out, const Number &obj){
+        out << obj.x;
+        return out;
+    }
+};
+
+int main(){
+    Number n1(10), n2(20), n3;
+    n3 = n1 + n2;
+    cout << "Addition: " << n3 << endl;
+    n3 = n2 - n1;
+    cout << "Subtraction: " << n3 << endl;
+    ++n1;
+    cout << "After ++: " << n1 << endl;
+    if (n1 == n2){
+        cout << "Numbers are equal" << endl;
+    }
+    else{
+        cout << "Numbers are not equal" << endl;
+    }
+    return 0;
+}
