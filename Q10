@@ -1,0 +1,91 @@
+#include <iostream>
+#include <cmath> //for square root function
+using namespace std;
+
+struct ShapeResult{
+    bool isValid; // false if shape is invalid
+    float value;  // The calculated result
+};
+//Abstract class with pure virtual functions
+class Shape{
+public:
+    virtual ShapeResult calculateArea() = 0;
+    virtual ShapeResult calculatePerimeter() = 0; 
+};
+
+class Rectangle : public Shape{
+    float length, width;
+public:
+    Rectangle(float l, float w){
+        length = l;
+        width = w;
+    }
+    ShapeResult calculateArea(){
+        return {true, length * width};
+    }
+    ShapeResult calculatePerimeter(){
+        return {true, 2 * (length + width)};
+    }
+};
+
+class Triangle : public Shape{
+    float side1, side2, side3;
+    bool isValidTriangle(){
+        return (side1 + side2 > side3 && side2 + side3 > side1 && side1 + side3 > side2);
+    }
+public:
+    Triangle(float s1, float s2, float s3){
+        side1 = s1; side2 = s2; side3 = s3;
+    }
+    ShapeResult calculateArea(){
+        if (isValidTriangle()){
+            float s = (side1 + side2 + side3) / 2.0; 
+            float area = sqrt(s * (s - side1) * (s - side2) * (s - side3));
+            return {true, area}; 
+        }else{
+            return {false, 0.0f}; 
+        }
+    }
+    ShapeResult calculatePerimeter(){
+        if (isValidTriangle()){
+            return {true, side1 + side2 + side3};
+        } else{
+            return {false, 0.0f};
+        }
+    }
+};
+
+int main() {
+    Shape *s; 
+    ShapeResult result;
+    cout << "--- Testing Rectangle ---" << endl;
+    Rectangle rect(10, 5);
+    s = &rect;
+    result = s->calculateArea();
+    if(result.isValid) cout << "Rectangle Area: " << result.value << endl;
+    result = s->calculatePerimeter();
+    if(result.isValid) cout << "Rectangle Perimeter: " << result.value << endl;
+    
+    cout << "\n--- Testing a Valid Triangle ---" << endl;
+    Triangle triValid(3, 4, 5); 
+    s = &triValid;
+    result = s->calculateArea();
+    if(result.isValid){
+        cout << "Triangle Area: " << result.value << endl;
+    }else{
+        cout << "Error: Invalid triangle geometry!" << endl;
+    }
+    result = s->calculatePerimeter();
+    if(result.isValid) cout << "Triangle Perimeter: " << result.value << endl;
+
+    cout << "\n--- Testing an Invalid Triangle ---" << endl;
+    Triangle triInvalid(1, 2, 10); 
+    s = &triInvalid;
+    result = s->calculateArea();
+    if(result.isValid){
+        cout << "Triangle Area: " << result.value << endl;
+    }else{
+        cout << "Error: Invalid triangle geometry!" << endl;
+    }
+    return 0;
+}
