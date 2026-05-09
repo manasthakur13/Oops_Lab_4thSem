@@ -1,0 +1,35 @@
+#include <iostream>
+using namespace std;
+
+class Demo{
+    static int count;
+    int id;
+public:
+    Demo(){
+        count++;
+        id = count;
+    }
+    ~Demo(){
+        count--;
+    }
+    static int getCount(){
+        return count;
+    }
+    int getId(){
+        return id;
+    }
+};
+int Demo::count = 0;
+
+int main(){
+    cout << "Total objects created: " << Demo::getCount() << endl;
+    Demo d1;
+    Demo d2;
+    cout<<"Object Id: "<<d1.getId()<<endl;
+    cout<<"Object Id: "<<d2.getId()<<endl;
+    cout << "Total objects created: " << Demo::getCount() << endl;
+    Demo d3;
+    cout<<"Object Id: "<<d3.getId()<<endl;
+    cout << "Total objects created: " << Demo::getCount() << endl;
+    return 0;
+}
