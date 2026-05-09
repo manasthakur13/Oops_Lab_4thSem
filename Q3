@@ -1,0 +1,29 @@
+#include <iostream>
+using namespace std;
+
+class Geometry{
+public:
+    float area(float r) {return 3.14 * r * r;}
+    float area(float l, float b) {return l * b;}
+
+    int sum(int a, int b) {return a + b;}
+    int sum(int a, int b, int c) {return a + b + c;}
+
+    float volume(float s) {return s * s * s;}
+    float volume(float r, float h) {return 3.14 * r * r * h;}
+};
+
+int main(){
+    Geometry obj;
+
+    cout << "Area of Circle: " << obj.area(5.0) << endl;
+    cout << "Area of Rectangle: " << obj.area(4.0, 6.0) << endl;
+
+    cout << "Sum of two: " << obj.sum(10, 20) << endl;
+    cout << "Sum of three: " << obj.sum(10, 20, 30) << endl;
+
+    cout << "Volume of Cube: " << obj.volume(3.0) << endl;
+    cout << "Volume of Cylinder: " << obj.volume(2.0, 10.0) << endl;
+
+    return 0;
+}
