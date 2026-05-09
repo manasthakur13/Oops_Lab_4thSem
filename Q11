@@ -1,0 +1,36 @@
+#include <iostream>
+using namespace std;
+
+class Engine{
+    string type;
+    int hp;
+public:
+    Engine(string t, int h){
+        type = t;
+        hp = h;
+    }
+    void showEngine(){
+        cout << "Engine Type: " << type << endl;
+        cout << "Horsepower: " << hp << " HP" << endl;
+    }
+};
+
+class Car{
+    string name;
+    Engine eng; // Containership (Car HAS-A Engine)
+public:
+    Car(string n, string t, int h) : eng(t, h){
+        name = n;
+    }
+    void showCar(){
+        cout << "Car Name: " << name << endl;
+        eng.showEngine();
+    }
+};
+
+int main(){
+    Car myCar("Ford","V8 Diesel",500);
+    cout << "--- Car Details ---" << endl;
+    myCar.showCar();
+    return 0;
+}
