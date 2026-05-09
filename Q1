@@ -1,0 +1,42 @@
+#include <iostream>
+using namespace std;
+
+class Calculator{
+public:
+    // 1. Defined inside the class: implicitly inline by default
+    // No need for the 'inline' keyword here.
+    double add(double a, double b) {
+        return a + b;
+    }
+    // Function prototypes defined inside the class
+    double subtract(double a, double b);
+    double multiply(double a, double b);
+    double divide(double a, double b);
+};
+// 2. Explicitly inline functions defined outside the class using scope resolution (::)
+inline double Calculator::subtract(double a, double b) {
+    return a - b;
+}
+inline double Calculator::multiply(double a, double b) {
+    return a * b;
+}
+inline double Calculator::divide(double a, double b) {
+    if (b == 0.0) {
+        return 0.0; // Simple error flag 
+    }
+    return a / b;
+}
+
+int main(){
+    Calculator obj;
+    double n1, n2;
+    cout << "Enter first number: ";
+    cin >> n1;
+    cout << "Enter second number: ";
+    cin >> n2;
+    cout << "Addition: " << obj.add(n1, n2) << endl;
+    cout << "Subtraction: " << obj.subtract(n1, n2) << endl;
+    cout << "Multiplication: " << obj.multiply(n1, n2) << endl;
+    cout << "Division: " << obj.divide(n1, n2) << endl;
+    return 0;
+}
